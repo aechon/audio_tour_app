@@ -1,5 +1,4 @@
-import { Text, View, StyleSheet, TextInput } from "react-native";
-import { Button } from '@ant-design/react-native';
+import { Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 
 export default function Index() {
@@ -29,53 +28,77 @@ export default function Index() {
     // Implement search functionality here
   }, [debouncedQuery]);
 
+  const handleClear = () => {
+    setSearchQuery("");
+  };
+
   return (
-    <View
-      style={styles.container}
-    >
-      <Text style={styles.text}>Hello Expo!</Text>
-      
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search tours..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <Button type="primary" onPress={handleSearch}>Search</Button>
+        <View style={styles.inputWrapper}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search audio tours..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>×</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      
-      <Button>Click me</Button>
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: "#F5F5F5",
   },
   text: {
-    color: "#FFF",
+    color: "#000",
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
   },
   searchContainer: {
+    width: "100%",
+    paddingHorizontal: 15,
+    paddingTop: 15,
+    backgroundColor: "#F5F5F5",
+  },
+  inputWrapper: {
     flexDirection: "row",
-    width: "80%",
-    marginBottom: 20,
+    alignItems: "center",
+  },
+  searchIcon: {
+    position: "absolute",
+    left: 10,
+    fontSize: 16,
+    color: "#999",
+    zIndex: 1,
   },
   searchInput: {
     flex: 1,
     height: 40,
     backgroundColor: "#FFF",
     borderRadius: 5,
-    paddingHorizontal: 10,
-    marginRight: 10,
+    paddingHorizontal: 35,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  clearButton: {
+    position: "absolute",
+    right: 10,
+    paddingHorizontal: 5,
+  },
+  clearButtonText: {
+    fontSize: 20,
+    color: "#999",
   },
 });
