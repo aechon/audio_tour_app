@@ -40,7 +40,7 @@ export default function RootLayout() {
           headerBackVisible: true,
           headerLeft: Platform.OS === 'web' ? () => (
             <TouchableOpacity 
-              onPress={() => router.push('/')}
+              onPress={() => router.replace('/')}
               style={{ 
                 marginLeft: 15,
                 padding: 8,
