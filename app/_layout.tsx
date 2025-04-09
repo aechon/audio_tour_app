@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { Image, View } from "react-native";
+import { Image, View, Platform } from "react-native";
 
 export default function RootLayout() {
   return (
@@ -7,9 +7,12 @@ export default function RootLayout() {
       <Stack.Screen 
         name="index" 
         options={{
-          headerTitle: '',
+          headerTitle: '[Audio Tours App]',
           headerLeft: () => (
-            <View style={{ marginLeft: 15 }}>
+            <View style={{ 
+              marginLeft: Platform.OS === 'android' ? 0 : 15,
+              marginRight: Platform.OS === 'android' ? 10 : 8,
+            }}>
               <Image
                 source={require('../assets/images/logo.png')}
                 style={{ width: 40, height: 40 }}
@@ -20,8 +23,11 @@ export default function RootLayout() {
           headerStyle: {
             backgroundColor: '#F5F5F5',
             borderBottomWidth: 0,
-            elevation: 0,
-            shadowOpacity: 0,
+            ...(Platform.OS === 'android' ? {
+              elevation: 2,
+            } : {
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }),
           },
         }}
       />
