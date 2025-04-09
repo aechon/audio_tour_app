@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 export default function NewTour() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create New Tour</Text>
+
       {/* Add tour creation form here */}
     </View>
   );

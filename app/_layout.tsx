@@ -1,7 +1,10 @@
 import { Stack } from "expo-router";
-import { Image, View, Platform } from "react-native";
+import { Image, View, Platform, Text, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function RootLayout() {
+  const router = useRouter();
+  
   return (
     <Stack>
       <Stack.Screen 
@@ -18,6 +21,46 @@ export default function RootLayout() {
                 style={{ width: 40, height: 40 }}
                 resizeMode="contain"
               />
+            </View>
+          ),
+          headerStyle: {
+            backgroundColor: '#F5F5F5',
+            borderBottomWidth: 0,
+            ...(Platform.OS === 'android' ? {
+              elevation: 2,
+            } : {
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }),
+          },
+        }}
+      />
+      <Stack.Screen 
+        name="new_tour" 
+        options={{
+          headerBackVisible: true,
+          headerLeft: Platform.OS === 'web' ? () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/')}
+              style={{ 
+                marginLeft: 15,
+                padding: 8,
+              }}
+            >
+              <Text style={{ fontSize: 24 }}>←</Text>
+            </TouchableOpacity>
+          ) : undefined,
+          headerTitle: () => (
+            <View style={{ 
+              marginLeft: Platform.OS === 'android' ? -15 : 0,
+              flex: 1,
+              justifyContent: 'center',
+            }}>
+              <Text style={{ 
+                fontSize: 18,
+                fontWeight: '600',
+              }}>
+                Create New Tour
+              </Text>
             </View>
           ),
           headerStyle: {
