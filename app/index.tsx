@@ -4,6 +4,7 @@ import * as Location from "expo-location";
 import { Link } from "expo-router";
 import Constants from 'expo-constants';
 import { GOOGLE_MAPS_API_KEY } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AddressComponent {
   long_name: string;
@@ -46,6 +47,21 @@ export default function Index() {
   const [location, setLocation] = useState<string>("Getting location...");
   const [status, requestPermission] = Location.useForegroundPermissions();
 
+  // Load saved location on initial render
+  useEffect(() => {
+    const loadSavedLocation = async () => {
+      try {
+        const savedLocation = await AsyncStorage.getItem('lastKnownLocation');
+        if (savedLocation) {
+          setLocation(savedLocation);
+        }
+      } catch (error) {
+        console.log('Error loading saved location:', error);
+      }
+    };
+    loadSavedLocation();
+  }, []);
+
   // Get user's location
   useEffect(() => {
     const getLocation = async () => {
@@ -63,6 +79,7 @@ export default function Index() {
             if (Platform.OS === 'web') {
               if (__DEV__) {
                 const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               } else {
                 try {
@@ -84,13 +101,16 @@ export default function Index() {
                     )?.long_name;
 
                     const formattedLocation = `${city || ''}${city && state ? ', ' : ''}${state || ''}${(city || state) && country ? ', ' : ''}${country || ''}`;
+                    await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                     setLocation(formattedLocation);
                   } else {
                     const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                    await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                     setLocation(formattedLocation);
                   }
                 } catch (error) {
                   const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 }
               }
@@ -104,13 +124,16 @@ export default function Index() {
                 if (address[0]) {
                   const { city, region, country } = address[0];
                   const formattedLocation = `${city || ''}${city && region ? ', ' : ''}${region || ''}${(city || region) && country ? ', ' : ''}${country || ''}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 } else {
                   const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 }
               } catch (geocodeError) {
                 const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               }
             }
@@ -123,6 +146,7 @@ export default function Index() {
           if (Platform.OS === 'web') {
             if (__DEV__) {
               const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+              await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
               setLocation(formattedLocation);
             } else {
               try {
@@ -144,13 +168,16 @@ export default function Index() {
                   )?.long_name;
 
                   const formattedLocation = `${city || ''}${city && state ? ', ' : ''}${state || ''}${(city || state) && country ? ', ' : ''}${country || ''}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 } else {
                   const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 }
               } catch (error) {
                 const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               }
             }
@@ -164,13 +191,16 @@ export default function Index() {
               if (address[0]) {
                 const { city, region, country } = address[0];
                 const formattedLocation = `${city || ''}${city && region ? ', ' : ''}${region || ''}${(city || region) && country ? ', ' : ''}${country || ''}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               } else {
                 const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               }
             } catch (geocodeError) {
               const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+              await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
               setLocation(formattedLocation);
             }
           }

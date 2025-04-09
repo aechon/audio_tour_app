@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { Image, View, Platform, Text, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -39,15 +39,16 @@ export default function RootLayout() {
         options={{
           headerBackVisible: true,
           headerLeft: Platform.OS === 'web' ? () => (
-            <TouchableOpacity 
-              onPress={() => router.replace('/')}
-              style={{ 
-                marginLeft: 15,
-                padding: 8,
-              }}
-            >
-              <Text style={{ fontSize: 24 }}>←</Text>
-            </TouchableOpacity>
+            <Link href="/" asChild>
+              <TouchableOpacity 
+                style={{ 
+                  marginLeft: 15,
+                  padding: 8,
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>←</Text>
+              </TouchableOpacity>
+            </Link>
           ) : undefined,
           headerTitle: () => (
             <View style={{ 
