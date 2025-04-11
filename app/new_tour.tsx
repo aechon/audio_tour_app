@@ -7,10 +7,11 @@ import { useNavigation } from "expo-router";
 import { RectButton } from "react-native-gesture-handler";
 
 const PLACEHOLDER_TITLE = "Enter tour title...";
+const PLACEHOLDER_DESCRIPTION = "Enter tour description...";
 
 export default function NewTour() {
   // Use local state for mobile, context for web
-  const [mobileTour, setMobileTour] = useState({ title: "" });
+  const [mobileTour, setMobileTour] = useState({ title: "", description: "" });
   const { tour: webTour, setTour: setWebTour, clearTour } = useTour();
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -47,19 +48,22 @@ export default function NewTour() {
     });
   };
 
+  const isTitleEmpty = !tour.title.trim();
+
   // Set up header options
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         Platform.OS === 'web' ? (
-          <Link href="/new_tour_preview" asChild>
+          isTitleEmpty ? (
             <TouchableOpacity 
-              style={{ 
+              style={{
                 marginRight: 15,
                 padding: 8,
-                backgroundColor: '#007AFF',
+                backgroundColor: '#CCCCCC',
                 borderRadius: 8,
               }}
+              disabled={true}
             >
               <Text style={{ 
                 color: 'white',
@@ -69,16 +73,41 @@ export default function NewTour() {
                 Preview
               </Text>
             </TouchableOpacity>
-          </Link>
+          ) : (
+            <Link href="/new_tour_preview" asChild>
+              <TouchableOpacity 
+                style={{
+                  marginRight: 15,
+                  padding: 8,
+                  backgroundColor: '#007AFF',
+                  borderRadius: 8,
+                }}
+              >
+                <Text style={{ 
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}>
+                  Preview
+                </Text>
+              </TouchableOpacity>
+            </Link>
+          )
         ) : Platform.OS === 'android' ? (
           <RectButton 
             onPress={handlePreview}
-            style={{ 
-              marginRight: 15,
-              padding: 8,
-              backgroundColor: '#007AFF',
-              borderRadius: 8,
-            }}
+            enabled={!isTitleEmpty}
+            style={[
+              { 
+                marginRight: 15,
+                padding: 8,
+                backgroundColor: '#007AFF',
+                borderRadius: 8,
+              },
+              isTitleEmpty && {
+                backgroundColor: '#CCCCCC',
+              }
+            ]}
           >
             <Text style={{ 
               color: 'white',
@@ -91,12 +120,18 @@ export default function NewTour() {
         ) : (
           <TouchableOpacity 
             onPress={handlePreview}
-            style={{ 
-              marginRight: 15,
-              padding: 8,
-              backgroundColor: '#007AFF',
-              borderRadius: 8,
-            }}
+            disabled={isTitleEmpty}
+            style={[
+              { 
+                marginRight: 15,
+                padding: 8,
+                backgroundColor: '#007AFF',
+                borderRadius: 8,
+              },
+              isTitleEmpty && {
+                backgroundColor: '#CCCCCC',
+              }
+            ]}
           >
             <Text style={{ 
               color: 'white',
@@ -109,7 +144,7 @@ export default function NewTour() {
         )
       ),
     });
-  }, [navigation, tour.title]);
+  }, [navigation, tour.title, isTitleEmpty]);
 
   return (
     <View style={styles.container}>
@@ -120,7 +155,16 @@ export default function NewTour() {
         value={tour.title}
         onChangeText={(text) => setTour({ ...tour, title: text })}
       />
-      {/* Tour creation form will go here */}
+      <TextInput
+        style={styles.descriptionInput}
+        placeholder={PLACEHOLDER_DESCRIPTION}
+        placeholderTextColor="#999"
+        value={tour.description}
+        onChangeText={(text) => setTour({ ...tour, description: text })}
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+      />
     </View>
   );
 }
@@ -141,5 +185,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
     marginBottom: 20,
+  },
+  descriptionInput: {
+    fontSize: 16,
+    color: "#000",
+    padding: 10,
+    backgroundColor: "#FFF",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    minHeight: 120,
+    textAlignVertical: "top",
   },
 }); 

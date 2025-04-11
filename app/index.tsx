@@ -1,10 +1,11 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, Platform } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import * as Location from "expo-location";
 import { Link } from "expo-router";
 import Constants from 'expo-constants';
 import { GOOGLE_MAPS_API_KEY } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Searchbar } from 'react-native-paper';
 
 interface AddressComponent {
   long_name: string;
@@ -77,42 +78,40 @@ export default function Index() {
             const location = await Location.getCurrentPositionAsync({});
             
             if (Platform.OS === 'web') {
-              if (__DEV__) {
-                const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-                setLocation(formattedLocation);
-              } else {
-                try {
-                  const response = await fetch(
-                    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`
-                  );
-                  const data = await response.json();
+              try {
+                const response = await fetch(
+                  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`
+                );
+                const data = await response.json();
 
-                  if (data.results && data.results[0]) {
-                    const addressComponents = data.results[0].address_components;
-                    const city = addressComponents.find((component: AddressComponent) => 
-                      component.types.includes('locality')
-                    )?.long_name;
-                    const state = addressComponents.find((component: AddressComponent) => 
-                      component.types.includes('administrative_area_level_1')
-                    )?.long_name;
-                    const country = addressComponents.find((component: AddressComponent) => 
-                      component.types.includes('country')
-                    )?.long_name;
+                if (data.results && data.results[0]) {
+                  const addressComponents = data.results[0].address_components;
+                  const street = addressComponents.find((component: AddressComponent) => 
+                    component.types.includes('route')
+                  )?.long_name;
+                  const streetNumber = addressComponents.find((component: AddressComponent) => 
+                    component.types.includes('street_number')
+                  )?.long_name;
+                  const city = addressComponents.find((component: AddressComponent) => 
+                    component.types.includes('locality')
+                  )?.long_name;
+                  const state = addressComponents.find((component: AddressComponent) => 
+                    component.types.includes('administrative_area_level_1')
+                  )?.long_name;
 
-                    const formattedLocation = `${city || ''}${city && state ? ', ' : ''}${state || ''}${(city || state) && country ? ', ' : ''}${country || ''}`;
-                    await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-                    setLocation(formattedLocation);
-                  } else {
-                    const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-                    await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-                    setLocation(formattedLocation);
-                  }
-                } catch (error) {
+                  const streetAddress = streetNumber && street ? `${streetNumber} ${street}` : street || '';
+                  const formattedLocation = `${streetAddress}${streetAddress && city ? ', ' : ''}${city || ''}${(streetAddress || city) && state ? ', ' : ''}${state || ''}`;
+                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
+                  setLocation(formattedLocation);
+                } else {
                   const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
                   await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 }
+              } catch (error) {
+                const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
+                setLocation(formattedLocation);
               }
             } else {
               try {
@@ -122,8 +121,8 @@ export default function Index() {
                 });
 
                 if (address[0]) {
-                  const { city, region, country } = address[0];
-                  const formattedLocation = `${city || ''}${city && region ? ', ' : ''}${region || ''}${(city || region) && country ? ', ' : ''}${country || ''}`;
+                  const { street, city, region } = address[0];
+                  const formattedLocation = `${street || ''}${street && city ? ', ' : ''}${city || ''}${(street || city) && region ? ', ' : ''}${region || ''}`;
                   await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                   setLocation(formattedLocation);
                 } else {
@@ -144,42 +143,40 @@ export default function Index() {
           const location = await Location.getCurrentPositionAsync({});
           
           if (Platform.OS === 'web') {
-            if (__DEV__) {
-              const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-              await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-              setLocation(formattedLocation);
-            } else {
-              try {
-                const response = await fetch(
-                  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`
-                );
-                const data = await response.json();
+            try {
+              const response = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`
+              );
+              const data = await response.json();
 
-                if (data.results && data.results[0]) {
-                  const addressComponents = data.results[0].address_components;
-                  const city = addressComponents.find((component: AddressComponent) => 
-                    component.types.includes('locality')
-                  )?.long_name;
-                  const state = addressComponents.find((component: AddressComponent) => 
-                    component.types.includes('administrative_area_level_1')
-                  )?.long_name;
-                  const country = addressComponents.find((component: AddressComponent) => 
-                    component.types.includes('country')
-                  )?.long_name;
+              if (data.results && data.results[0]) {
+                const addressComponents = data.results[0].address_components;
+                const street = addressComponents.find((component: AddressComponent) => 
+                  component.types.includes('route')
+                )?.long_name;
+                const streetNumber = addressComponents.find((component: AddressComponent) => 
+                  component.types.includes('street_number')
+                )?.long_name;
+                const city = addressComponents.find((component: AddressComponent) => 
+                  component.types.includes('locality')
+                )?.long_name;
+                const state = addressComponents.find((component: AddressComponent) => 
+                  component.types.includes('administrative_area_level_1')
+                )?.long_name;
 
-                  const formattedLocation = `${city || ''}${city && state ? ', ' : ''}${state || ''}${(city || state) && country ? ', ' : ''}${country || ''}`;
-                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-                  setLocation(formattedLocation);
-                } else {
-                  const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-                  await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
-                  setLocation(formattedLocation);
-                }
-              } catch (error) {
+                const streetAddress = streetNumber && street ? `${streetNumber} ${street}` : street || '';
+                const formattedLocation = `${streetAddress}${streetAddress && city ? ', ' : ''}${city || ''}${(streetAddress || city) && state ? ', ' : ''}${state || ''}`;
+                await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
+                setLocation(formattedLocation);
+              } else {
                 const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
                 await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               }
+            } catch (error) {
+              const formattedLocation = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
+              await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
+              setLocation(formattedLocation);
             }
           } else {
             try {
@@ -189,8 +186,8 @@ export default function Index() {
               });
 
               if (address[0]) {
-                const { city, region, country } = address[0];
-                const formattedLocation = `${city || ''}${city && region ? ', ' : ''}${region || ''}${(city || region) && country ? ', ' : ''}${country || ''}`;
+                const { street, city, region } = address[0];
+                const formattedLocation = `${street || ''}${street && city ? ', ' : ''}${city || ''}${(street || city) && region ? ', ' : ''}${region || ''}`;
                 await AsyncStorage.setItem('lastKnownLocation', formattedLocation);
                 setLocation(formattedLocation);
               } else {
@@ -245,19 +242,16 @@ export default function Index() {
       <View style={styles.searchContainer}>
         <View style={styles.searchRow}>
           <View style={styles.inputWrapper}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-              style={styles.searchInput}
+            <Searchbar
               placeholder="Search audio tours..."
-              placeholderTextColor="#999"
-              value={searchQuery}
               onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchInput}
+              iconColor="#999"
+              placeholderTextColor="#999"
+              inputStyle={styles.searchInputText}
+              onClearIconPress={handleClear}
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-                <Text style={styles.clearButtonText}>×</Text>
-              </TouchableOpacity>
-            )}
           </View>
           <Link href="/new_tour" asChild>
             <TouchableOpacity style={styles.newTourButton}>
@@ -300,38 +294,42 @@ const styles = StyleSheet.create({
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    marginBottom: 10,
   },
   inputWrapper: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 10,
-    fontSize: 16,
-    color: "#999",
-    zIndex: 1,
+    marginRight: 10,
   },
   searchInput: {
-    flex: 1,
-    height: 40,
     backgroundColor: "#FFF",
-    borderRadius: 5,
-    paddingHorizontal: 35,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  clearButton: {
-    position: "absolute",
-    right: 10,
-    paddingHorizontal: 5,
+  searchInputText: {
+    color: "#000",
+    fontSize: 16,
   },
-  clearButtonText: {
-    fontSize: 20,
-    color: "#999",
+  newTourButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  newTourButtonText: {
+    color: "#FFF",
+    fontSize: 24,
+    fontWeight: "bold",
   },
   locationContainer: {
     flexDirection: "row",
@@ -341,27 +339,11 @@ const styles = StyleSheet.create({
   locationLabel: {
     fontSize: 14,
     color: "#666",
-    fontWeight: "500",
-    paddingLeft: 1,
+    marginRight: 5,
   },
   locationText: {
     fontSize: 14,
-    color: "#999",
-    marginLeft: 5,
+    color: "#000",
     flex: 1,
-    paddingRight: 1,
-  },
-  newTourButton: {
-    width: 38,
-    height: 38,
-    backgroundColor: "#007AFF",
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  newTourButtonText: {
-    fontSize: 22,
-    color: "#FFFFFF",
-    lineHeight: 22,
   },
 });

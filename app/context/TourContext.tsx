@@ -4,7 +4,7 @@ import { usePathname } from 'expo-router';
 
 interface Tour {
   title: string;
-  
+  description: string;
 }
 
 interface TourContextType {
@@ -16,7 +16,7 @@ interface TourContextType {
 const TourContext = createContext<TourContextType | undefined>(undefined);
 
 export function TourProvider({ children }: { children: ReactNode }) {
-  const [tour, setTour] = useState<Tour>({ title: '' });
+  const [tour, setTour] = useState<Tour>({ title: '', description: '' });
   const pathname = usePathname();
 
   // Clear tour state when navigating away from new_tour page, except when going to preview
@@ -46,7 +46,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [tour, pathname]);
 
   const clearTour = () => {
-    setTour({ title: '' });
+    setTour({ title: '', description: '' });
     if (Platform.OS === 'web') {
       localStorage.removeItem('tour');
     }

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useRouter, useLocalSearchParams, usePathname } from "expo-router";
 import { useTour } from "./context/TourContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 export default function NewTourPreview() {
@@ -10,24 +10,36 @@ export default function NewTourPreview() {
   const params = useLocalSearchParams();
   const pathname = usePathname();
   const mobileTitle = params.title as string;
+  const mobileDescription = params.description as string;
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Determine which title to use based on platform
+  // Determine which title and description to use based on platform
   const title = Platform.OS === 'web' ? webTour.title : mobileTitle;
+  const description = Platform.OS === 'web' ? webTour.description : mobileDescription;
 
-  // Redirect to new_tour if no title available (web only)
+  // Set mounted state after initial render
   useEffect(() => {
-    if (Platform.OS === 'web') {
+    setIsMounted(true);
+  }, []);
+
+  // Redirect to index if no context available or context is empty on web
+  useEffect(() => {
+    if (Platform.OS === 'web' && isMounted) {
       const isInTourFlow = pathname === '/new_tour' || pathname === '/new_tour_preview';
-      if (!isInTourFlow) {
-        router.replace('/new_tour');
+      if (!isInTourFlow || !webTour.title.trim()) {
+        router.replace('/');
       }
     }
-  }, [pathname]);
+  }, [pathname, webTour.title, isMounted]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title || "Untitled Tour"}</Text>
-      {/* Additional preview content will mirror the new_tour form layout */}
+      <View style={styles.descriptionContainer}>
+        <Text style={[styles.description, !description && styles.italicText]}>
+          {description || "No description provided"}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -43,5 +55,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000",
     marginBottom: 20,
+  },
+  descriptionContainer: {
+    marginBottom: 20,
+  },
+  description: {
+    fontSize: 16,
+    color: "#666",
+    lineHeight: 24,
+  },
+  italicText: {
+    fontStyle: "italic",
   },
 }); 
