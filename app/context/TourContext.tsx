@@ -4,6 +4,7 @@ import { usePathname } from 'expo-router';
 
 interface Tour {
   title: string;
+  
 }
 
 interface TourContextType {
