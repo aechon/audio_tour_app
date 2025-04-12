@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet, TouchableOpacity, Platform } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as Location from "expo-location";
 import { Link } from "expo-router";
 import Constants from 'expo-constants';
@@ -50,6 +50,7 @@ export default function Index() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editedLocation, setEditedLocation] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const addressInputRef = useRef<any>(null);
 
   const handleClear = () => {
     setSearchQuery("");
@@ -310,7 +311,7 @@ export default function Index() {
   }, [debouncedQuery]);
 
   const handleEditLocation = () => {
-    setEditedLocation(location);
+    setEditedLocation("");
     setIsEditModalVisible(true);
   };
 
@@ -325,6 +326,16 @@ export default function Index() {
     }
     setIsEditModalVisible(false);
   };
+
+  // Add effect to handle focus and selection when modal opens
+  useEffect(() => {
+    if (isEditModalVisible && addressInputRef.current) {
+      // Use setTimeout to ensure the modal is fully rendered
+      setTimeout(() => {
+        addressInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isEditModalVisible]);
 
   return (
     <View style={styles.container}>
@@ -403,10 +414,12 @@ export default function Index() {
         >
           <Text style={styles.modalTitle}>Edit Location</Text>
           <TextInput
+            ref={addressInputRef}
             mode="outlined"
             value={editedLocation}
             onChangeText={setEditedLocation}
             style={styles.modalInput}
+            autoFocus
             theme={{
               colors: {
                 primary: '#00B4D8',
@@ -435,6 +448,7 @@ export default function Index() {
               onPress={handleSaveLocation}
               style={styles.modalButton}
               buttonColor="#00B4D8"
+              textColor="#FFFFFF"
             >
               Save
             </Button>
