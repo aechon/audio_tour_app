@@ -51,6 +51,10 @@ export default function Index() {
   const [editedLocation, setEditedLocation] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  const handleClear = () => {
+    setSearchQuery("");
+  };
+
   // Add web-specific style injection
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -100,15 +104,25 @@ export default function Index() {
       const observer = new MutationObserver(updateStyles);
       observer.observe(document.body, { childList: true, subtree: true });
 
+      // Add ESC key handler
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && searchQuery && isSearchFocused) {
+          handleClear();
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+
       return () => {
         const styleElement = document.getElementById('searchbar-clear-button-styles');
         if (styleElement) {
           document.head.removeChild(styleElement);
         }
         observer.disconnect();
+        document.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [searchQuery]);
+  }, [searchQuery, handleClear, isSearchFocused]);
 
   // Load saved location on initial render
   useEffect(() => {
@@ -295,10 +309,6 @@ export default function Index() {
     // Implement search functionality here
   }, [debouncedQuery]);
 
-  const handleClear = () => {
-    setSearchQuery("");
-  };
-
   const handleEditLocation = () => {
     setEditedLocation(location);
     setIsEditModalVisible(true);
@@ -343,6 +353,11 @@ export default function Index() {
                   disabled: '#CAC4D0',
                 },
                 roundness: 12,
+              }}
+              onKeyPress={(e) => {
+                if (Platform.OS === 'web' && e.nativeEvent.key === 'Escape' && searchQuery) {
+                  handleClear();
+                }
               }}
             />
           </View>
