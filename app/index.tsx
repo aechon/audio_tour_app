@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity, Platform, Pressable, Keyboard } from "react-native";
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as Location from "expo-location";
 import { Link } from "expo-router";
@@ -337,125 +337,133 @@ export default function Index() {
     }
   }, [isEditModalVisible]);
 
+  const handlePressOutside = () => {
+    if (Platform.OS !== 'web') {
+      Keyboard.dismiss();
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchRow}>
-          <View style={[styles.inputWrapper, isSearchFocused && styles.inputWrapperFocused]}>
-            <Searchbar
-              placeholder="Search audio tours..."
-              onChangeText={setSearchQuery}
-              value={searchQuery}
-              style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
+    <Pressable onPress={handlePressOutside} style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchRow}>
+            <View style={[styles.inputWrapper, isSearchFocused && styles.inputWrapperFocused]}>
+              <Searchbar
+                placeholder="Search audio tours..."
+                onChangeText={setSearchQuery}
+                value={searchQuery}
+                style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
+                iconColor="#00B4D8"
+                placeholderTextColor="#666"
+                inputStyle={styles.searchInputText}
+                onClearIconPress={searchQuery ? handleClear : undefined}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                theme={{
+                  colors: {
+                    primary: '#00B4D8',
+                    background: '#FFFFFF',
+                    surface: '#F0F8FF',
+                    accent: '#00B4D8',
+                    text: '#1C1B1F',
+                    placeholder: '#666',
+                    disabled: '#CAC4D0',
+                  },
+                  roundness: 12,
+                }}
+                onKeyPress={(e) => {
+                  if (Platform.OS === 'web' && e.nativeEvent.key === 'Escape' && searchQuery) {
+                    handleClear();
+                  }
+                }}
+              />
+            </View>
+            <Link href="/new_tour" asChild>
+              <IconButton
+                icon="plus"
+                size={24}
+                iconColor="#FFFFFF"
+                style={styles.newTourButton}
+                containerColor="#00B4D8"
+              />
+            </Link>
+          </View>
+          <View style={styles.locationContainer}>
+            <IconButton
+              icon="map-marker"
+              size={16}
               iconColor="#00B4D8"
-              placeholderTextColor="#666"
-              inputStyle={styles.searchInputText}
-              onClearIconPress={searchQuery ? handleClear : undefined}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
+              style={styles.locationIcon}
+            />
+            <Text 
+              style={styles.locationText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {location}
+            </Text>
+            <IconButton
+              icon="pencil"
+              size={16}
+              iconColor="#00B4D8"
+              style={styles.editIcon}
+              onPress={handleEditLocation}
+            />
+          </View>
+        </View>
+
+        <Portal>
+          <Modal
+            visible={isEditModalVisible}
+            onDismiss={() => setIsEditModalVisible(false)}
+            contentContainerStyle={styles.modalContainer}
+          >
+            <Text style={styles.modalTitle}>Edit Location</Text>
+            <TextInput
+              ref={addressInputRef}
+              mode="outlined"
+              value={editedLocation}
+              onChangeText={setEditedLocation}
+              style={styles.modalInput}
+              autoFocus
               theme={{
                 colors: {
                   primary: '#00B4D8',
                   background: '#FFFFFF',
-                  surface: '#F0F8FF',
-                  accent: '#00B4D8',
+                  surface: '#FFFFFF',
                   text: '#1C1B1F',
                   placeholder: '#666',
-                  disabled: '#CAC4D0',
+                  onSurface: '#1C1B1F',
                 },
-                roundness: 12,
+                roundness: 8,
               }}
-              onKeyPress={(e) => {
-                if (Platform.OS === 'web' && e.nativeEvent.key === 'Escape' && searchQuery) {
-                  handleClear();
-                }
-              }}
+              outlineColor="transparent"
+              activeOutlineColor="#00B4D8"
             />
-          </View>
-          <Link href="/new_tour" asChild>
-            <IconButton
-              icon="plus"
-              size={24}
-              iconColor="#FFFFFF"
-              style={styles.newTourButton}
-              containerColor="#00B4D8"
-            />
-          </Link>
-        </View>
-        <View style={styles.locationContainer}>
-          <IconButton
-            icon="map-marker"
-            size={16}
-            iconColor="#00B4D8"
-            style={styles.locationIcon}
-          />
-          <Text 
-            style={styles.locationText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {location}
-          </Text>
-          <IconButton
-            icon="pencil"
-            size={16}
-            iconColor="#00B4D8"
-            style={styles.editIcon}
-            onPress={handleEditLocation}
-          />
-        </View>
+            <View style={styles.modalButtons}>
+              <Button
+                mode="outlined"
+                onPress={() => setIsEditModalVisible(false)}
+                style={styles.modalButton}
+                textColor="#00B4D8"
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleSaveLocation}
+                style={styles.modalButton}
+                buttonColor="#00B4D8"
+                textColor="#FFFFFF"
+              >
+                Save
+              </Button>
+            </View>
+          </Modal>
+        </Portal>
       </View>
-
-      <Portal>
-        <Modal
-          visible={isEditModalVisible}
-          onDismiss={() => setIsEditModalVisible(false)}
-          contentContainerStyle={styles.modalContainer}
-        >
-          <Text style={styles.modalTitle}>Edit Location</Text>
-          <TextInput
-            ref={addressInputRef}
-            mode="outlined"
-            value={editedLocation}
-            onChangeText={setEditedLocation}
-            style={styles.modalInput}
-            autoFocus
-            theme={{
-              colors: {
-                primary: '#00B4D8',
-                background: '#FFFFFF',
-                surface: '#FFFFFF',
-                text: '#1C1B1F',
-                placeholder: '#666',
-                onSurface: '#1C1B1F',
-              },
-              roundness: 8,
-            }}
-            outlineColor="transparent"
-            activeOutlineColor="#00B4D8"
-          />
-          <View style={styles.modalButtons}>
-            <Button
-              mode="outlined"
-              onPress={() => setIsEditModalVisible(false)}
-              style={styles.modalButton}
-              textColor="#00B4D8"
-            >
-              Cancel
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSaveLocation}
-              style={styles.modalButton}
-              buttonColor="#00B4D8"
-              textColor="#FFFFFF"
-            >
-              Save
-            </Button>
-          </View>
-        </Modal>
-      </Portal>
-    </View>
+    </Pressable>
   );
 }
 
