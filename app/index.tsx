@@ -5,7 +5,7 @@ import { Link } from "expo-router";
 import Constants from 'expo-constants';
 import { GOOGLE_MAPS_API_KEY } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Searchbar } from 'react-native-paper';
+import { Searchbar, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
 
 interface AddressComponent {
   long_name: string;
@@ -47,6 +47,67 @@ export default function Index() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [location, setLocation] = useState<string>("Getting location...");
   const [status, requestPermission] = Location.useForegroundPermissions();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editedLocation, setEditedLocation] = useState("");
+
+  // Add web-specific style injection
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const updateStyles = () => {
+        const styleId = 'searchbar-clear-button-styles';
+        let styleElement = document.getElementById(styleId);
+        
+        if (!styleElement) {
+          styleElement = document.createElement('style');
+          styleElement.id = styleId;
+          document.head.appendChild(styleElement);
+        }
+
+        styleElement.textContent = `
+          [data-testid="search-bar-icon-wrapper"] {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          [data-testid="search-bar-clear-icon-container"]${!searchQuery ? ', [aria-label="clear"]' : ''} {
+            display: ${searchQuery ? 'flex' : 'none'};
+            pointer-events: ${searchQuery ? 'auto' : 'none'};
+            opacity: ${searchQuery ? '1' : '0'};
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+          }
+          [data-testid="search-bar-clear-icon-container"] button {
+            padding: 8px;
+            margin: 0;
+          }
+          [data-testid="search-bar-clear-icon-container"]:hover${!searchQuery ? ', [aria-label="clear"]:hover' : ''},
+          [data-testid="search-bar-clear-icon-container"]:active${!searchQuery ? ', [aria-label="clear"]:active' : ''} {
+            display: ${searchQuery ? 'flex' : 'none'};
+            pointer-events: ${searchQuery ? 'auto' : 'none'};
+            opacity: ${searchQuery ? '1' : '0'};
+          }
+        `;
+      };
+
+      // Initial setup
+      updateStyles();
+
+      // Update styles when searchQuery changes
+      const observer = new MutationObserver(updateStyles);
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      return () => {
+        const styleElement = document.getElementById('searchbar-clear-button-styles');
+        if (styleElement) {
+          document.head.removeChild(styleElement);
+        }
+        observer.disconnect();
+      };
+    }
+  }, [searchQuery]);
 
   // Load saved location on initial render
   useEffect(() => {
@@ -237,6 +298,23 @@ export default function Index() {
     setSearchQuery("");
   };
 
+  const handleEditLocation = () => {
+    setEditedLocation(location);
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveLocation = async () => {
+    if (editedLocation.trim()) {
+      setLocation(editedLocation);
+      try {
+        await AsyncStorage.setItem('lastKnownLocation', editedLocation);
+      } catch (error) {
+        console.log('Error saving location:', error);
+      }
+    }
+    setIsEditModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -247,20 +325,41 @@ export default function Index() {
               onChangeText={setSearchQuery}
               value={searchQuery}
               style={styles.searchInput}
-              iconColor="#999"
-              placeholderTextColor="#999"
+              iconColor="#00B4D8"
+              placeholderTextColor="#666"
               inputStyle={styles.searchInputText}
-              onClearIconPress={handleClear}
+              onClearIconPress={searchQuery ? handleClear : undefined}
+              theme={{
+                colors: {
+                  primary: '#00B4D8',
+                  background: '#FFFFFF',
+                  surface: '#F0F8FF',
+                  accent: '#00B4D8',
+                  text: '#1C1B1F',
+                  placeholder: '#666',
+                  disabled: '#CAC4D0',
+                },
+                roundness: 12,
+              }}
             />
           </View>
           <Link href="/new_tour" asChild>
-            <TouchableOpacity style={styles.newTourButton}>
-              <Text style={styles.newTourButtonText}>+</Text>
-            </TouchableOpacity>
+            <IconButton
+              icon="plus"
+              size={24}
+              iconColor="#FFFFFF"
+              style={styles.newTourButton}
+              containerColor="#00B4D8"
+            />
           </Link>
         </View>
         <View style={styles.locationContainer}>
-          <Text style={styles.locationLabel}>Location:</Text>
+          <IconButton
+            icon="map-marker"
+            size={16}
+            iconColor="#00B4D8"
+            style={styles.locationIcon}
+          />
           <Text 
             style={styles.locationText}
             numberOfLines={1}
@@ -268,8 +367,62 @@ export default function Index() {
           >
             {location}
           </Text>
+          <IconButton
+            icon="pencil"
+            size={16}
+            iconColor="#00B4D8"
+            style={styles.editIcon}
+            onPress={handleEditLocation}
+          />
         </View>
       </View>
+
+      <Portal>
+        <Modal
+          visible={isEditModalVisible}
+          onDismiss={() => setIsEditModalVisible(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Text style={styles.modalTitle}>Edit Location</Text>
+          <TextInput
+            mode="outlined"
+            value={editedLocation}
+            onChangeText={setEditedLocation}
+            style={styles.modalInput}
+            theme={{
+              colors: {
+                primary: '#00B4D8',
+                background: '#FFFFFF',
+                surface: '#FFFFFF',
+                text: '#1C1B1F',
+                placeholder: '#666',
+                onSurface: '#1C1B1F',
+              },
+              roundness: 8,
+            }}
+            outlineColor="transparent"
+            activeOutlineColor="#00B4D8"
+          />
+          <View style={styles.modalButtons}>
+            <Button
+              mode="outlined"
+              onPress={() => setIsEditModalVisible(false)}
+              style={styles.modalButton}
+              textColor="#00B4D8"
+            >
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={handleSaveLocation}
+              style={styles.modalButton}
+              buttonColor="#00B4D8"
+            >
+              Save
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -277,10 +430,10 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#F0F8FF",
   },
   text: {
-    color: "#000",
+    color: "#1C1B1F",
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
@@ -289,61 +442,103 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 15,
     paddingTop: 15,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#F0F8FF",
   },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   inputWrapper: {
     flex: 1,
     marginRight: 10,
+    ...(Platform.OS === 'android' ? {
+      backgroundColor: "#FFFFFF",
+      borderRadius: 32,
+      elevation: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    } : {}),
   },
   searchInput: {
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: Platform.OS === 'android' ? "transparent" : "#FFFFFF",
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    } : Platform.OS === 'ios' ? {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    } : {}),
   },
   searchInputText: {
-    color: "#000",
+    color: "#1C1B1F",
     fontSize: 16,
   },
   newTourButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#007AFF",
-    justifyContent: "center",
-    alignItems: "center",
+    margin: 0,
+    padding: 0,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  newTourButtonText: {
-    color: "#FFF",
-    fontSize: 24,
-    fontWeight: "bold",
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    } : {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    }),
   },
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 5,
   },
-  locationLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginRight: 5,
+  locationIcon: {
+    margin: 0,
+    padding: 0,
+    marginRight: 4,
+  },
+  editIcon: {
+    margin: 0,
+    padding: 0,
+    marginLeft: 4,
   },
   locationText: {
     fontSize: 14,
-    color: "#000",
+    color: "#1C1B1F",
     flex: 1,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 16,
+    margin: 16,
+    borderRadius: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#1C1B1F',
+  },
+  modalInput: {
+    marginBottom: 12,
+    fontSize: 14,
+    height: 36,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  modalButton: {
+    minWidth: 80,
   },
 });
