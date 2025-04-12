@@ -49,6 +49,7 @@ export default function Index() {
   const [status, requestPermission] = Location.useForegroundPermissions();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editedLocation, setEditedLocation] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Add web-specific style injection
   useEffect(() => {
@@ -319,16 +320,18 @@ export default function Index() {
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={styles.searchRow}>
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, isSearchFocused && styles.inputWrapperFocused]}>
             <Searchbar
               placeholder="Search audio tours..."
               onChangeText={setSearchQuery}
               value={searchQuery}
-              style={styles.searchInput}
+              style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
               iconColor="#00B4D8"
               placeholderTextColor="#666"
               inputStyle={styles.searchInputText}
               onClearIconPress={searchQuery ? handleClear : undefined}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
               theme={{
                 colors: {
                   primary: '#00B4D8',
@@ -460,17 +463,38 @@ const styles = StyleSheet.create({
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      margin: -3,
+    } : {}),
+  },
+  inputWrapperFocused: {
+    ...(Platform.OS === 'android' ? {
+      borderColor: '#00B4D8',
     } : {}),
   },
   searchInput: {
     backgroundColor: Platform.OS === 'android' ? "transparent" : "#FFFFFF",
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      borderWidth: 2,
+      borderColor: 'transparent',
+      margin: -3,
     } : Platform.OS === 'ios' ? {
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      margin: -3,
+    } : {}),
+  },
+  searchInputFocused: {
+    ...(Platform.OS === 'web' ? {
+      borderColor: '#00B4D8',
+    } : Platform.OS === 'ios' ? {
+      borderColor: '#00B4D8',
     } : {}),
   },
   searchInputText: {
