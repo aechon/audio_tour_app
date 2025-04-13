@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { TourProvider } from "./context/TourContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from 'react-native-paper';
+import { colors } from './styles/colors';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -12,7 +13,20 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider>
         <TourProvider>
-          <Stack>
+          <Stack
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.text,
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
+            }}
+          >
             <Stack.Screen 
               name="index" 
               options={{
@@ -30,7 +44,7 @@ export default function RootLayout() {
                   </View>
                 ),
                 headerStyle: {
-                  backgroundColor: '#F5F5F5',
+                  backgroundColor: colors.header.background,
                   borderBottomWidth: 0,
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,
@@ -70,7 +84,7 @@ export default function RootLayout() {
                   </View>
                 ),
                 headerStyle: {
-                  backgroundColor: '#F5F5F5',
+                  backgroundColor: colors.header.background,
                   borderBottomWidth: 0,
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,
@@ -110,7 +124,7 @@ export default function RootLayout() {
                   </View>
                 ),
                 headerStyle: {
-                  backgroundColor: '#F5F5F5',
+                  backgroundColor: colors.header.background,
                   borderBottomWidth: 0,
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,

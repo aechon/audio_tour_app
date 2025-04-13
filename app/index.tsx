@@ -6,6 +6,8 @@ import Constants from 'expo-constants';
 import { GOOGLE_MAPS_API_KEY } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Searchbar, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
+import { textInputTheme, textInputStyles } from './styles/globalStyles';
+import { colors } from './styles/colors';
 
 interface AddressComponent {
   long_name: string;
@@ -343,8 +345,8 @@ export default function Index() {
     }
   };
 
-  return (
-    <Pressable onPress={handlePressOutside} style={{ flex: 1 }}>
+  return Platform.OS === 'web' ? (
+    <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchRow}>
@@ -354,21 +356,21 @@ export default function Index() {
                 onChangeText={setSearchQuery}
                 value={searchQuery}
                 style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
-                iconColor="#00B4D8"
-                placeholderTextColor="#666"
+                iconColor={colors.primary}
+                placeholderTextColor={colors.gray.placeholder}
                 inputStyle={styles.searchInputText}
                 onClearIconPress={searchQuery ? handleClear : undefined}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 theme={{
                   colors: {
-                    primary: '#00B4D8',
-                    background: '#FFFFFF',
-                    surface: '#F0F8FF',
-                    accent: '#00B4D8',
-                    text: '#1C1B1F',
-                    placeholder: '#666',
-                    disabled: '#CAC4D0',
+                    primary: colors.primary,
+                    background: colors.surface,
+                    surface: colors.surface,
+                    accent: colors.primary,
+                    text: colors.text,
+                    placeholder: colors.gray.placeholder,
+                    disabled: colors.gray.disabled,
                   },
                   roundness: 12,
                 }}
@@ -383,9 +385,9 @@ export default function Index() {
               <IconButton
                 icon="plus"
                 size={24}
-                iconColor="#FFFFFF"
+                iconColor={colors.white}
                 style={styles.newTourButton}
-                containerColor="#00B4D8"
+                containerColor={colors.primary}
               />
             </Link>
           </View>
@@ -393,7 +395,7 @@ export default function Index() {
             <IconButton
               icon="map-marker"
               size={16}
-              iconColor="#00B4D8"
+              iconColor={colors.primary}
               style={styles.locationIcon}
             />
             <Text 
@@ -406,7 +408,7 @@ export default function Index() {
             <IconButton
               icon="pencil"
               size={16}
-              iconColor="#00B4D8"
+              iconColor={colors.primary}
               style={styles.editIcon}
               onPress={handleEditLocation}
             />
@@ -425,28 +427,18 @@ export default function Index() {
               mode="outlined"
               value={editedLocation}
               onChangeText={setEditedLocation}
-              style={styles.modalInput}
+              style={[textInputStyles.base, styles.modalInput]}
               autoFocus
-              theme={{
-                colors: {
-                  primary: '#00B4D8',
-                  background: '#FFFFFF',
-                  surface: '#FFFFFF',
-                  text: '#1C1B1F',
-                  placeholder: '#666',
-                  onSurface: '#1C1B1F',
-                },
-                roundness: 8,
-              }}
+              theme={textInputTheme}
               outlineColor="transparent"
-              activeOutlineColor="#00B4D8"
+              activeOutlineColor={colors.primary}
             />
             <View style={styles.modalButtons}>
               <Button
                 mode="outlined"
                 onPress={() => setIsEditModalVisible(false)}
                 style={styles.modalButton}
-                textColor="#00B4D8"
+                textColor={colors.primary}
               >
                 Cancel
               </Button>
@@ -454,8 +446,119 @@ export default function Index() {
                 mode="contained"
                 onPress={handleSaveLocation}
                 style={styles.modalButton}
-                buttonColor="#00B4D8"
-                textColor="#FFFFFF"
+                buttonColor={colors.primary}
+                textColor={colors.white}
+              >
+                Save
+              </Button>
+            </View>
+          </Modal>
+        </Portal>
+      </View>
+    </View>
+  ) : (
+    <Pressable onPress={handlePressOutside} style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchRow}>
+            <View style={[styles.inputWrapper, isSearchFocused && styles.inputWrapperFocused]}>
+              <Searchbar
+                placeholder="Search audio tours..."
+                onChangeText={setSearchQuery}
+                value={searchQuery}
+                style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
+                iconColor={colors.primary}
+                placeholderTextColor={colors.gray.placeholder}
+                inputStyle={styles.searchInputText}
+                onClearIconPress={searchQuery ? handleClear : undefined}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                theme={{
+                  colors: {
+                    primary: colors.primary,
+                    background: colors.surface,
+                    surface: colors.surface,
+                    accent: colors.primary,
+                    text: colors.text,
+                    placeholder: colors.gray.placeholder,
+                    disabled: colors.gray.disabled,
+                  },
+                  roundness: 12,
+                }}
+                onKeyPress={(e) => {
+                  if (Platform.OS === 'web' && e.nativeEvent.key === 'Escape' && searchQuery) {
+                    handleClear();
+                  }
+                }}
+              />
+            </View>
+            <Link href="/new_tour" asChild>
+              <IconButton
+                icon="plus"
+                size={24}
+                iconColor={colors.white}
+                style={styles.newTourButton}
+                containerColor={colors.primary}
+              />
+            </Link>
+          </View>
+          <View style={styles.locationContainer}>
+            <IconButton
+              icon="map-marker"
+              size={16}
+              iconColor={colors.primary}
+              style={styles.locationIcon}
+            />
+            <Text 
+              style={styles.locationText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {location}
+            </Text>
+            <IconButton
+              icon="pencil"
+              size={16}
+              iconColor={colors.primary}
+              style={styles.editIcon}
+              onPress={handleEditLocation}
+            />
+          </View>
+        </View>
+
+        <Portal>
+          <Modal
+            visible={isEditModalVisible}
+            onDismiss={() => setIsEditModalVisible(false)}
+            contentContainerStyle={styles.modalContainer}
+          >
+            <Text style={styles.modalTitle}>Edit Location</Text>
+            <TextInput
+              ref={addressInputRef}
+              mode="outlined"
+              value={editedLocation}
+              onChangeText={setEditedLocation}
+              style={[textInputStyles.base, styles.modalInput]}
+              autoFocus
+              theme={textInputTheme}
+              outlineColor="transparent"
+              activeOutlineColor={colors.primary}
+            />
+            <View style={styles.modalButtons}>
+              <Button
+                mode="outlined"
+                onPress={() => setIsEditModalVisible(false)}
+                style={styles.modalButton}
+                textColor={colors.primary}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleSaveLocation}
+                style={styles.modalButton}
+                buttonColor={colors.primary}
+                textColor={colors.white}
               >
                 Save
               </Button>
@@ -470,10 +573,10 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F0F8FF",
+    backgroundColor: colors.background,
   },
   text: {
-    color: "#1C1B1F",
+    color: colors.text,
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
@@ -482,7 +585,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 15,
     paddingTop: 15,
-    backgroundColor: "#F0F8FF",
+    backgroundColor: colors.background,
   },
   searchRow: {
     flexDirection: "row",
@@ -493,10 +596,10 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
     ...(Platform.OS === 'android' ? {
-      backgroundColor: "#FFFFFF",
+      backgroundColor: colors.surface,
       borderRadius: 32,
       elevation: 8,
-      shadowColor: "#000",
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
@@ -507,18 +610,18 @@ const styles = StyleSheet.create({
   },
   inputWrapperFocused: {
     ...(Platform.OS === 'android' ? {
-      borderColor: '#00B4D8',
+      borderColor: colors.primary,
     } : {}),
   },
   searchInput: {
-    backgroundColor: Platform.OS === 'android' ? "transparent" : "#FFFFFF",
+    backgroundColor: Platform.OS === 'android' ? "transparent" : colors.surface,
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
       borderWidth: 2,
       borderColor: 'transparent',
       margin: -3,
     } : Platform.OS === 'ios' ? {
-      shadowColor: "#000",
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -529,13 +632,13 @@ const styles = StyleSheet.create({
   },
   searchInputFocused: {
     ...(Platform.OS === 'web' ? {
-      borderColor: '#00B4D8',
+      borderColor: colors.primary,
     } : Platform.OS === 'ios' ? {
-      borderColor: '#00B4D8',
+      borderColor: colors.primary,
     } : {}),
   },
   searchInputText: {
-    color: "#1C1B1F",
+    color: colors.text,
     fontSize: 16,
   },
   newTourButton: {
@@ -548,7 +651,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     } : {
-      shadowColor: "#000",
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -571,11 +674,11 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
-    color: "#1C1B1F",
+    color: colors.text,
     flex: 1,
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.surface,
     padding: 16,
     margin: 16,
     borderRadius: 12,
@@ -584,15 +687,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#1C1B1F',
+    color: colors.text,
   },
   modalInput: {
     marginBottom: 12,
     fontSize: 14,
     height: 36,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   modalButtons: {
     flexDirection: 'row',
