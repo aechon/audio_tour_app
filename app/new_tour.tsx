@@ -163,7 +163,6 @@ export default function NewTour() {
       }
 
       setIsUploading(true);
-      console.log('Video uploaded:', file.name);
       
       // Create new AbortController for this upload
       uploadController.current = new AbortController();
@@ -173,7 +172,7 @@ export default function NewTour() {
         setTour({ ...tour, videoUri: file.uri, videoFileName: file.name });
       } catch (err) {
         if (err instanceof Error && err.message === 'Upload cancelled') {
-          console.log('Upload cancelled by user');
+          // Upload was cancelled by user
         } else {
           throw err;
         }
@@ -182,7 +181,6 @@ export default function NewTour() {
         uploadController.current = null;
       }
     } catch (err) {
-      console.error('Error picking video:', err);
       if (err instanceof Error && err.message !== 'Upload cancelled') {
         alert('Error picking video file');
       }
@@ -198,7 +196,6 @@ export default function NewTour() {
       return;
     }
     
-    console.log('Video removed:', tour.videoFileName);
     setTour({ ...tour, videoUri: '', videoFileName: '' });
   };
 
