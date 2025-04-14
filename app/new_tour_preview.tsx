@@ -47,13 +47,12 @@ export default function NewTourPreview() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
-    padding: 15,
+    backgroundColor: '#fff',
+    padding: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: "600",
-    color: "#000",
+    fontWeight: 'bold',
     marginBottom: 20,
   },
   descriptionContainer: {
@@ -61,10 +60,10 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    color: "#666",
     lineHeight: 24,
   },
   italicText: {
-    fontStyle: "italic",
+    fontStyle: 'italic',
+    color: '#666',
   },
 }); 

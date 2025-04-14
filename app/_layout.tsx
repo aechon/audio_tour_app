@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
-import { Image, View, Platform, Text, TouchableOpacity } from "react-native";
+import { Image, View, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { TourProvider } from "./context/TourContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { PaperProvider } from 'react-native-paper';
+import { PaperProvider, Text } from 'react-native-paper';
 import { colors } from './styles/colors';
 
 export default function RootLayout() {
@@ -66,7 +66,7 @@ export default function RootLayout() {
                     }}
                     onPress={() => router.replace('/')}
                   >
-                    <Text style={{ fontSize: 24 }}>←</Text>
+                    <Text style={{ fontSize: 24, color: colors.text }}>←</Text>
                   </TouchableOpacity>
                 ) : undefined,
                 headerTitle: Platform.OS === 'android' ? 'Create New Tour' : () => (
@@ -78,6 +78,7 @@ export default function RootLayout() {
                     <Text style={{ 
                       fontSize: 18,
                       fontWeight: '600',
+                      color: colors.text,
                     }}>
                       Create New Tour
                     </Text>
@@ -106,7 +107,7 @@ export default function RootLayout() {
                     }}
                     onPress={() => router.replace('/new_tour')}
                   >
-                    <Text style={{ fontSize: 24 }}>←</Text>
+                    <Text style={{ fontSize: 24, color: colors.text }}>←</Text>
                   </TouchableOpacity>
                 ) : undefined,
                 headerTitle: Platform.OS === 'android' ? 'Tour Preview' : () => (
@@ -118,6 +119,7 @@ export default function RootLayout() {
                     <Text style={{ 
                       fontSize: 18,
                       fontWeight: '600',
+                      color: colors.text,
                     }}>
                       Tour Preview
                     </Text>

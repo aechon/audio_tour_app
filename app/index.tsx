@@ -1,11 +1,11 @@
-import { Text, View, StyleSheet, TouchableOpacity, Platform, Pressable, Keyboard } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Platform, Pressable, Keyboard, Animated, ViewStyle } from "react-native";
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as Location from "expo-location";
 import { Link } from "expo-router";
 import Constants from 'expo-constants';
 import { GOOGLE_MAPS_API_KEY } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Searchbar, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
+import { Searchbar, IconButton, Modal, Portal, TextInput, Button, Text, ActivityIndicator } from 'react-native-paper';
 import { textInputTheme, textInputStyles } from './styles/globalStyles';
 import { colors } from './styles/colors';
 
@@ -45,6 +45,7 @@ interface GeocodingResponse {
 }
 
 export default function Index() {
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [location, setLocation] = useState<string>("Getting location...");
@@ -135,8 +136,10 @@ export default function Index() {
         if (savedLocation) {
           setLocation(savedLocation);
         }
+        setIsLoading(false);
       } catch (error) {
         console.log('Error loading saved location:', error);
+        setIsLoading(false);
       }
     };
     loadSavedLocation();
@@ -345,6 +348,23 @@ export default function Index() {
     }
   };
 
+  useEffect(() => {
+    // Simulate loading time for context/state initialization
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return Platform.OS === 'web' ? (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -357,7 +377,7 @@ export default function Index() {
                 value={searchQuery}
                 style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
                 iconColor={colors.primary}
-                placeholderTextColor={colors.gray.placeholder}
+                placeholderTextColor={colors.placeholder}
                 inputStyle={styles.searchInputText}
                 onClearIconPress={searchQuery ? handleClear : undefined}
                 onFocus={() => setIsSearchFocused(true)}
@@ -369,8 +389,8 @@ export default function Index() {
                     surface: colors.surface,
                     accent: colors.primary,
                     text: colors.text,
-                    placeholder: colors.gray.placeholder,
-                    disabled: colors.gray.disabled,
+                    placeholder: colors.placeholder,
+                    disabled: colors.disabled,
                   },
                   roundness: 12,
                 }}
@@ -385,9 +405,11 @@ export default function Index() {
               <IconButton
                 icon="plus"
                 size={24}
-                iconColor={colors.white}
+                iconColor={colors.inputBackground}
                 style={styles.newTourButton}
                 containerColor={colors.primary}
+                rippleColor="transparent"
+                onPress={() => {}}
               />
             </Link>
           </View>
@@ -447,7 +469,7 @@ export default function Index() {
                 onPress={handleSaveLocation}
                 style={styles.modalButton}
                 buttonColor={colors.primary}
-                textColor={colors.white}
+                textColor={colors.inputBackground}
               >
                 Save
               </Button>
@@ -468,7 +490,7 @@ export default function Index() {
                 value={searchQuery}
                 style={[styles.searchInput, isSearchFocused && styles.searchInputFocused]}
                 iconColor={colors.primary}
-                placeholderTextColor={colors.gray.placeholder}
+                placeholderTextColor={colors.placeholder}
                 inputStyle={styles.searchInputText}
                 onClearIconPress={searchQuery ? handleClear : undefined}
                 onFocus={() => setIsSearchFocused(true)}
@@ -480,8 +502,8 @@ export default function Index() {
                     surface: colors.surface,
                     accent: colors.primary,
                     text: colors.text,
-                    placeholder: colors.gray.placeholder,
-                    disabled: colors.gray.disabled,
+                    placeholder: colors.placeholder,
+                    disabled: colors.disabled,
                   },
                   roundness: 12,
                 }}
@@ -496,9 +518,11 @@ export default function Index() {
               <IconButton
                 icon="plus"
                 size={24}
-                iconColor={colors.white}
+                iconColor={colors.inputBackground}
                 style={styles.newTourButton}
                 containerColor={colors.primary}
+                rippleColor="transparent"
+                onPress={() => {}}
               />
             </Link>
           </View>
@@ -558,7 +582,7 @@ export default function Index() {
                 onPress={handleSaveLocation}
                 style={styles.modalButton}
                 buttonColor={colors.primary}
-                textColor={colors.white}
+                textColor={colors.inputBackground}
               >
                 Save
               </Button>
@@ -648,6 +672,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     elevation: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     } : {
@@ -656,6 +682,12 @@ const styles = StyleSheet.create({
       shadowOpacity: 0.1,
       shadowRadius: 4,
     }),
+  },
+  newTourButtonContent: {
+    height: 48,
+    width: 48,
+    padding: 0,
+    margin: 0,
   },
   locationContainer: {
     flexDirection: "row",
@@ -701,5 +733,11 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     minWidth: 80,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
   },
 });

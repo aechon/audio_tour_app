@@ -2,21 +2,23 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { Platform } from 'react-native';
 import { usePathname } from 'expo-router';
 
-interface Tour {
+type Tour = {
   title: string;
   description: string;
-}
+  videoUri: string;
+  videoFileName: string;
+};
 
-interface TourContextType {
+type TourContextType = {
   tour: Tour;
   setTour: (tour: Tour) => void;
   clearTour: () => void;
-}
+};
 
 const TourContext = createContext<TourContextType | undefined>(undefined);
 
 export function TourProvider({ children }: { children: ReactNode }) {
-  const [tour, setTour] = useState<Tour>({ title: '', description: '' });
+  const [tour, setTour] = useState<Tour>({ title: '', description: '', videoUri: '', videoFileName: '' });
   const pathname = usePathname();
 
   // Clear tour state when navigating away from new_tour page, except when going to preview
@@ -46,7 +48,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [tour, pathname]);
 
   const clearTour = () => {
-    setTour({ title: '', description: '' });
+    setTour({ title: '', description: '', videoUri: '', videoFileName: '' });
     if (Platform.OS === 'web') {
       localStorage.removeItem('tour');
     }

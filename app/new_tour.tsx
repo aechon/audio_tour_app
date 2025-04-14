@@ -1,22 +1,64 @@
-import { View, Text, StyleSheet, Platform, TextInput, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Platform, Animated, ViewStyle, TouchableOpacity } from "react-native";
 import { useRouter, useLocalSearchParams, usePathname } from "expo-router";
 import { useTour } from "./context/TourContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "expo-router";
 import { useNavigation } from "expo-router";
-import { RectButton } from "react-native-gesture-handler";
+import { TextInput, Button, IconButton, Text, ActivityIndicator } from "react-native-paper";
+import { colors } from "./styles/colors";
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 const PLACEHOLDER_TITLE = "Enter tour title...";
 const PLACEHOLDER_DESCRIPTION = "Enter tour description...";
 
+const CustomButton = ({ 
+  onPress, 
+  title, 
+  disabled = false,
+  style,
+  textStyle 
+}: { 
+  onPress?: () => void; 
+  title: string; 
+  disabled?: boolean;
+  style?: any;
+  textStyle?: any;
+}) => {
+  const buttonStyle = [
+    styles.customButton,
+    disabled && styles.customButtonDisabled,
+    style
+  ];
+
+  const textStyles = [
+    styles.customButtonText,
+    disabled && styles.customButtonTextDisabled,
+    textStyle
+  ];
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      style={buttonStyle}
+      activeOpacity={0.7}
+    >
+      <Text style={textStyles}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
 export default function NewTour() {
+  const [isLoading, setIsLoading] = useState(true);
   // Use local state for mobile, context for web
-  const [mobileTour, setMobileTour] = useState({ title: "", description: "" });
+  const [mobileTour, setMobileTour] = useState({ title: "", description: "", videoUri: "", videoFileName: "" });
   const { tour: webTour, setTour: setWebTour, clearTour } = useTour();
   const router = useRouter();
   const params = useLocalSearchParams();
   const pathname = usePathname();
   const navigation = useNavigation();
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   // Determine which state to use based on platform
   const tour = Platform.OS === 'web' ? webTour : mobileTour;
@@ -33,6 +75,15 @@ export default function NewTour() {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    // Simulate loading time for context/state initialization
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handlePreview = () => {
     if (Platform.OS === 'web') {
       // State is managed by context, no need for URL params
@@ -43,128 +94,176 @@ export default function NewTour() {
       pathname: "/new_tour_preview",
       params: { 
         fromPreview: "true",
-        title: tour.title 
+        title: tour.title,
+        description: tour.description,
+        videoUri: tour.videoUri
       }
     });
   };
 
   const isTitleEmpty = !tour.title.trim();
 
+  useEffect(() => {
+    Animated.timing(opacityAnim, {
+      toValue: isTitleEmpty ? 0 : 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isTitleEmpty]);
+
   // Set up header options
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        Platform.OS === 'web' ? (
-          isTitleEmpty ? (
-            <TouchableOpacity 
-              style={{
-                marginRight: 15,
-                padding: 8,
-                backgroundColor: '#CCCCCC',
-                borderRadius: 8,
-              }}
-              disabled={true}
-            >
-              <Text style={{ 
-                color: 'white',
-                fontSize: 16,
-                fontWeight: '600',
-              }}>
-                Preview
-              </Text>
-            </TouchableOpacity>
+        <Animated.View style={{ opacity: opacityAnim }}>
+          {Platform.OS === 'web' ? (
+            isTitleEmpty ? (
+              <CustomButton
+                title="Preview"
+                disabled={true}
+              />
+            ) : (
+              <Link href="/new_tour_preview" asChild>
+                <View>
+                  <CustomButton
+                    title="Preview"
+                  />
+                </View>
+              </Link>
+            )
           ) : (
-            <Link href="/new_tour_preview" asChild>
-              <TouchableOpacity 
-                style={{
-                  marginRight: 15,
-                  padding: 8,
-                  backgroundColor: '#007AFF',
-                  borderRadius: 8,
-                }}
-              >
-                <Text style={{ 
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: '600',
-                }}>
-                  Preview
-                </Text>
-              </TouchableOpacity>
-            </Link>
-          )
-        ) : Platform.OS === 'android' ? (
-          <RectButton 
-            onPress={handlePreview}
-            enabled={!isTitleEmpty}
-            style={[
-              { 
-                marginRight: 15,
-                padding: 8,
-                backgroundColor: '#007AFF',
-                borderRadius: 8,
-              },
-              isTitleEmpty && {
-                backgroundColor: '#CCCCCC',
-              }
-            ]}
-          >
-            <Text style={{ 
-              color: 'white',
-              fontSize: 16,
-              fontWeight: '600',
-            }}>
-              Preview
-            </Text>
-          </RectButton>
-        ) : (
-          <TouchableOpacity 
-            onPress={handlePreview}
-            disabled={isTitleEmpty}
-            style={[
-              { 
-                marginRight: 15,
-                padding: 8,
-                backgroundColor: '#007AFF',
-                borderRadius: 8,
-              },
-              isTitleEmpty && {
-                backgroundColor: '#CCCCCC',
-              }
-            ]}
-          >
-            <Text style={{ 
-              color: 'white',
-              fontSize: 16,
-              fontWeight: '600',
-            }}>
-              Preview
-            </Text>
-          </TouchableOpacity>
-        )
+            <CustomButton
+              title="Preview"
+              onPress={handlePreview}
+              disabled={isTitleEmpty}
+            />
+          )}
+        </Animated.View>
       ),
     });
-  }, [navigation, tour.title, isTitleEmpty]);
+  }, [navigation, tour.title, isTitleEmpty, opacityAnim]);
+
+  const pickVideo = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'video/mp4',
+        copyToCacheDirectory: true
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets[0];
+      if (file.mimeType !== 'video/mp4') {
+        alert('Please select an MP4 video file');
+        return;
+      }
+
+      console.log('Video uploaded:', file.name);
+      setTour({ ...tour, videoUri: file.uri, videoFileName: file.name });
+    } catch (err) {
+      console.error('Error picking video:', err);
+      alert('Error picking video file');
+    }
+  };
+
+  const removeVideo = () => {
+    console.log('Video removed:', tour.videoFileName);
+    setTour({ ...tour, videoUri: '', videoFileName: '' });
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.titleInput}
+        mode="outlined"
+        label="Tour Title"
         placeholder={PLACEHOLDER_TITLE}
-        placeholderTextColor="#999"
         value={tour.title}
         onChangeText={(text) => setTour({ ...tour, title: text })}
+        style={[
+          styles.titleInput, 
+          { 
+            backgroundColor: colors.inputBackground,
+          }
+        ]}
+        textColor={colors.text}
+        theme={{
+          colors: {
+            primary: colors.primary,
+            background: colors.inputBackground,
+            surface: colors.inputBackground,
+            text: colors.text,
+            placeholder: colors.placeholder,
+            disabled: colors.disabled,
+          },
+          roundness: 8,
+        }}
       />
       <TextInput
-        style={styles.descriptionInput}
+        mode="outlined"
+        label="Tour Description"
         placeholder={PLACEHOLDER_DESCRIPTION}
-        placeholderTextColor="#999"
         value={tour.description}
         onChangeText={(text) => setTour({ ...tour, description: text })}
         multiline
         numberOfLines={4}
-        textAlignVertical="top"
+        style={[
+          styles.descriptionInput, 
+          { 
+            backgroundColor: colors.inputBackground,
+          }
+        ]}
+        textColor={colors.text}
+        theme={{
+          colors: {
+            primary: colors.primary,
+            background: colors.inputBackground,
+            surface: colors.inputBackground,
+            text: colors.text,
+            placeholder: colors.placeholder,
+            disabled: colors.disabled,
+          },
+          roundness: 8,
+        }}
       />
+      <View style={styles.videoSection}>
+        <Button
+          mode="contained"
+          onPress={pickVideo}
+          style={styles.videoButton}
+          icon="video"
+          contentStyle={styles.videoButtonContent}
+        >
+          {tour.videoUri ? 'Replace Video' : 'Upload Video'}
+        </Button>
+        <View style={[styles.videoInfoContainer, !tour.videoUri && styles.hidden]}>
+          <IconButton
+            icon="close"
+            size={12}
+            onPress={removeVideo}
+            style={styles.removeButton}
+            iconColor={colors.surface}
+            containerColor={colors.primary}
+          />
+          <Text 
+            style={styles.videoFileNameText} 
+            variant="bodySmall"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {tour.videoFileName}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -172,29 +271,85 @@ export default function NewTour() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background,
     padding: 15,
   },
   titleInput: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#000",
-    padding: 10,
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
     marginBottom: 20,
   },
   descriptionInput: {
     fontSize: 16,
-    color: "#000",
-    padding: 10,
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
     minHeight: 120,
-    textAlignVertical: "top",
+  },
+  customButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 4,
+    elevation: 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    marginRight: 15,
+  },
+  customButtonDisabled: {
+    backgroundColor: colors.disabled,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  customButtonText: {
+    color: colors.inputBackground,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  customButtonTextDisabled: {
+    color: colors.placeholder,
+  },
+  videoSection: {
+    marginTop: 20,
+  },
+  videoButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  videoButtonContent: {
+    height: 48,
+    paddingHorizontal: 16,
+  },
+  videoInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    width: '100%',
+  },
+  videoFileNameText: {
+    color: colors.text,
+    textAlign: 'center',
+    fontSize: 13,
+  },
+  removeButton: {
+    margin: 0,
+    padding: 0,
+    width: 18,
+    height: 18,
+    marginRight: 8,
+  },
+  hidden: {
+    display: 'none',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
   },
 }); 
