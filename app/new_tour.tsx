@@ -51,6 +51,8 @@ const CustomButton = ({
 
 export default function NewTour() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const uploadController = useRef<AbortController | null>(null);
   // Use local state for mobile, context for web
   const [mobileTour, setMobileTour] = useState({ title: "", description: "", videoUri: "", videoFileName: "" });
   const { tour: webTour, setTour: setWebTour, clearTour } = useTour();
@@ -160,15 +162,42 @@ export default function NewTour() {
         return;
       }
 
+      setIsUploading(true);
       console.log('Video uploaded:', file.name);
-      setTour({ ...tour, videoUri: file.uri, videoFileName: file.name });
+      
+      // Create new AbortController for this upload
+      uploadController.current = new AbortController();
+      
+      try {
+        // Set the tour state immediately after file selection
+        setTour({ ...tour, videoUri: file.uri, videoFileName: file.name });
+      } catch (err) {
+        if (err instanceof Error && err.message === 'Upload cancelled') {
+          console.log('Upload cancelled by user');
+        } else {
+          throw err;
+        }
+      } finally {
+        setIsUploading(false);
+        uploadController.current = null;
+      }
     } catch (err) {
       console.error('Error picking video:', err);
-      alert('Error picking video file');
+      if (err instanceof Error && err.message !== 'Upload cancelled') {
+        alert('Error picking video file');
+      }
+      setIsUploading(false);
+      uploadController.current = null;
     }
   };
 
   const removeVideo = () => {
+    if (isUploading && uploadController.current) {
+      // Cancel the current upload
+      uploadController.current.abort();
+      return;
+    }
+    
     console.log('Video removed:', tour.videoFileName);
     setTour({ ...tour, videoUri: '', videoFileName: '' });
   };
@@ -242,10 +271,11 @@ export default function NewTour() {
           style={styles.videoButton}
           icon="video"
           contentStyle={styles.videoButtonContent}
+          disabled={isUploading}
         >
           {tour.videoUri ? 'Replace Video' : 'Upload Video'}
         </Button>
-        <View style={[styles.videoInfoContainer, !tour.videoUri && styles.hidden]}>
+        <View style={[styles.videoInfoContainer, !tour.videoUri && !isUploading && styles.hidden]}>
           <IconButton
             icon="close"
             size={12}
@@ -254,14 +284,18 @@ export default function NewTour() {
             iconColor={colors.surface}
             containerColor={colors.primary}
           />
-          <Text 
-            style={styles.videoFileNameText} 
-            variant="bodySmall"
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {tour.videoFileName}
-          </Text>
+          {isUploading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={styles.uploadIndicator} />
+          ) : (
+            <Text 
+              style={styles.videoFileNameText} 
+              variant="bodySmall"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {tour.videoFileName}
+            </Text>
+          )}
         </View>
       </View>
     </View>
@@ -351,5 +385,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.background,
+  },
+  uploadIndicator: {
+    marginLeft: 8,
   },
 }); 
