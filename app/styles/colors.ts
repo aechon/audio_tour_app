@@ -9,6 +9,7 @@ export const colors = {
   onSurface: '#1C1B1F',
   inputBackground: '#FFFFFF',
   shadow: '#000',
+  shadowWithOpacity: 'rgba(0, 0, 0, 0.1)',
   header: {
     background: '#F5F5F5',
     disabled: '#CAC4D0',

@@ -49,7 +49,7 @@ export default function RootLayout() {
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,
                   } : {
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    boxShadow: `0 2px 4px ${colors.shadowWithOpacity}`,
                   }),
                 },
               }}
@@ -69,7 +69,7 @@ export default function RootLayout() {
                     <Text style={{ fontSize: 24, color: colors.text }}>←</Text>
                   </TouchableOpacity>
                 ) : undefined,
-                headerTitle: Platform.OS === 'android' ? 'Create New Tour' : () => (
+                headerTitle: Platform.OS === 'android' ? 'New Tour' : () => (
                   <View style={{ 
                     marginLeft: Platform.OS === 'android' ? -15 : 0,
                     flex: 1,
@@ -80,7 +80,7 @@ export default function RootLayout() {
                       fontWeight: '600',
                       color: colors.text,
                     }}>
-                      Create New Tour
+                      New Tour
                     </Text>
                   </View>
                 ),
@@ -90,7 +90,7 @@ export default function RootLayout() {
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,
                   } : {
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    boxShadow: `0 2px 4px ${colors.shadowWithOpacity}`,
                   }),
                 },
               }}
@@ -110,7 +110,7 @@ export default function RootLayout() {
                     <Text style={{ fontSize: 24, color: colors.text }}>←</Text>
                   </TouchableOpacity>
                 ) : undefined,
-                headerTitle: Platform.OS === 'android' ? 'Tour Preview' : () => (
+                headerTitle: Platform.OS === 'android' ? 'Preview' : () => (
                   <View style={{ 
                     marginLeft: Platform.OS === 'android' ? -15 : 0,
                     flex: 1,
@@ -121,7 +121,7 @@ export default function RootLayout() {
                       fontWeight: '600',
                       color: colors.text,
                     }}>
-                      Tour Preview
+                      Preview
                     </Text>
                   </View>
                 ),
@@ -131,7 +131,7 @@ export default function RootLayout() {
                   ...(Platform.OS === 'android' ? {
                     elevation: 2,
                   } : {
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    boxShadow: `0 2px 4px ${colors.shadowWithOpacity}`,
                   }),
                 },
               }}
