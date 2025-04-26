@@ -1,4 +1,6 @@
-{
+import 'dotenv/config'; // Load .env file at the top
+
+export default {
   "expo": {
     "name": "audio_tour_app",
     "slug": "audio_tour_app",
@@ -32,10 +34,17 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": process.env.EAS_PROJECT_ID || "YOUR_EAS_PROJECT_ID"
+      },
+      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
     }
   }
 }

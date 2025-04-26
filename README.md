@@ -1,50 +1,36 @@
-# Welcome to your Expo app 👋
+# Audio Tour App (Work In Progress)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is an [Expo](https://expo.dev) project aiming to create a mobile and web application for discovering and taking audio tours.
 
-## Get started
+The project is currently under active development.
 
-1. Install dependencies
+## Purpose
 
-   ```bash
-   npm install
-   ```
+The goal is to allow users to find audio tours based on their location or search criteria and listen to them directly within the app.
 
-2. Start the app
+## Current Features (MVP)
 
-   ```bash
+*   Basic user interface.
+*   Location search/autocomplete input (powered by Google Places API).
+*   (Functionality for actually loading/playing tours is pending development).
+
+## Setup and Run
+
+1.  **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+2.  **Start the development server:**
+
+    ```bash
     npx expo start
-   ```
+    ```
 
-In the output, you'll find options to open the app in a
+    Follow the prompts in the terminal to open the app on a simulator/emulator, a physical device via Expo Go, or in a web browser.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Important Notes
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*   **Web Autocomplete & CORS:** The location autocomplete feature works correctly on native builds (iOS/Android). However, due to browser security restrictions (CORS), the web version requires a proxy server or a dedicated backend to handle requests to the Google Places API. This project is currently frontend-only.
+*   **Backend Development:** A proper backend is planned for future development to handle API requests securely, manage tour data, user accounts, etc.
